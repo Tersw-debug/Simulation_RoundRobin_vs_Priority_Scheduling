@@ -1,5 +1,3 @@
-
-# Python + Tkinter Scheduling Comparison Project
 import tkinter as tk
 from tkinter import messagebox
 import customtkinter as tkk
