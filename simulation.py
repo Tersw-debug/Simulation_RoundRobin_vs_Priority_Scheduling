@@ -130,11 +130,12 @@ class APP:
         self.input_frame.grid_columnconfigure(0, weight=1)
         self.input_frame.grid_columnconfigure(1, weight=1)
         
-        self.result_frame = tkk.CTkFrame(self.main_frame)
+        self.result_frame = tkk.CTkScrollableFrame(self.main_frame, height=800)
         self.result_frame.grid_rowconfigure(0, weight=1)
         self.result_frame.grid_rowconfigure(1, weight=0) 
         self.result_frame.grid_columnconfigure(0, weight=1)
         self.result_frame.grid_columnconfigure(1, weight=1)
+
 
         pad = {"padx": 5, "pady": 5}
         self.entries_padding = {"padx": 10, "pady": 10}
@@ -452,7 +453,50 @@ class APP:
 
         self.result_frame.grid_forget()
         self.input_frame.grid(row=0, column=0, sticky="nsew")
-    
+
+
+    def generate_analysis(self, prio_avg, rr_avg):
+        prio_tat, prio_wt, prio_rt = prio_avg
+        rr_tat, rr_wt, rr_rt = rr_avg
+
+        analysis = []
+
+        # 1. Waiting Time
+        if prio_wt < rr_wt:
+            analysis.append("Priority Scheduling gave better average waiting time.")
+        elif rr_wt < prio_wt:
+            analysis.append("Round Robin gave better average waiting time.")
+        else:
+            analysis.append("Both algorithms have equal waiting time.")
+
+        # 2. Response Time
+        if prio_rt < rr_rt:
+            analysis.append("Priority Scheduling gave better response time.")
+        elif rr_rt < prio_rt:
+            analysis.append("Round Robin gave better response time.")
+        else:
+            analysis.append("Both algorithms have equal response time.")
+
+        # 3. Priority advantage
+        analysis.append("Higher-priority processes were executed earlier in Priority Scheduling.")
+
+        # 4. Fairness
+        analysis.append("Round Robin distributes CPU time more evenly among processes.")
+
+        # 5. Starvation
+        if prio_wt > rr_wt * 1.5:
+            analysis.append("Possible starvation detected in Priority Scheduling.")
+        else:
+            analysis.append("No strong starvation observed.")
+
+        # 6. Recommendation
+        if rr_wt < prio_wt:
+            analysis.append("Round Robin is recommended for fairness.")
+        else:
+            analysis.append("Priority Scheduling is recommended for urgent tasks.")
+
+        return analysis
+        
     def start_simulation(self):
         if not hasattr(self, "quantum"):
             messagebox.showerror("Error", "Please set Quantum Time for Round Robin")
@@ -490,7 +534,7 @@ class APP:
             text="Back",
             command=self.back_to_input
         )
-        back_btn.grid(row=1, column=0, columnspan=2, sticky="ew", pady=10)
+        back_btn.grid(row=2, column=0, columnspan=2, sticky="ew", pady=10)
         
 
         # ----------- Table Builder -----------
@@ -550,6 +594,9 @@ class APP:
         self.right_frame_result = tkk.CTkFrame(self.result_frame)
         self.right_frame_result.grid(row=0, column=1, sticky="nsew")
 
+        self.bottom_frame_result = tkk.CTkFrame(self.result_frame)
+        self.bottom_frame_result.grid(row=1, column=0, columnspan=2, sticky="nsew")
+
         # -----------Fill Tables-----------
         create_table(
             self.left_frame_result,
@@ -566,8 +613,61 @@ class APP:
             rr_avg,
             rr_time_line
         )
+        self.comparison_frame = tkk.CTkFrame(self.bottom_frame_result)
+        self.comparison_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        
+  
+        self.comparison_frame.grid_columnconfigure(0, weight=3)
+        self.comparison_frame.grid_columnconfigure(1, weight=2)
 
+        #------------Left Container - Summary & Analysis--------------
+        analysis_container = tkk.CTkFrame(self.comparison_frame, fg_color="transparent")
+        analysis_container.grid(row=0, column=0, sticky="nsew", padx=15, pady=15)
 
+        tkk.CTkLabel(
+            analysis_container,
+            text="Summary & Analysis",
+            font=self.my_font_label_main
+        ).pack(pady=(0, 10), anchor="w")
+
+        analysis = self.generate_analysis(prio_avg, rr_avg)
+        for line in analysis:
+            tkk.CTkLabel(
+                analysis_container,
+                text="• " + line, 
+                font=self.my_font, 
+                anchor='w',
+                justify='left'
+            ).pack(anchor="w", pady=4)
+        
+        # 2. Right Container - Conclusion
+        conclusion_container = tkk.CTkFrame(self.comparison_frame, fg_color="transparent")
+        conclusion_container.grid(row=0, column=1, sticky="nsew", padx=15, pady=15)
+
+        tkk.CTkLabel(
+            conclusion_container,
+            text="Conclusion",
+            font=self.my_font_label_main
+        ).pack(pady=(0, 10), anchor="w")
+
+        better_algo = "Round Robin" if rr_avg[1] < prio_avg[1] else "Priority Scheduling"
+        starvation_risk = "Yes" if prio_avg[1] > rr_avg[1] else "Low"
+
+        conclusions = [
+            f"Better Algorithm: {better_algo}",
+            "Priority improves urgent-task execution.",
+            "Round Robin improves fairness.",
+            f"Starvation risk: {starvation_risk}"
+        ]
+
+        for line in conclusions:
+            tkk.CTkLabel(
+                conclusion_container,
+                text="• " + line,
+                font=self.my_font,
+                anchor='w',
+                justify='left'
+            ).pack(anchor="w", pady=4)
 
 
 
