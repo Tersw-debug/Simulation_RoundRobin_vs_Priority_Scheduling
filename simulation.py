@@ -481,8 +481,8 @@ class APP:
             self.quantum = 3
             pid = [1, 2, 3, 4]
             p_arrival = [0, 1, 3, 5]
-            p_burst = [3,10,11,11]
-            p_priority = [1, 4, 1, 1]
+            p_burst = [10,3,3,3]
+            p_priority = [4, 1, 1, 1]
 
 
 
